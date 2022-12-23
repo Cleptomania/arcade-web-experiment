@@ -17,9 +17,9 @@
             let buffer = await response.arrayBuffer();
             await pyodide.unpackArchive(buffer, "zip");
             pyodide.pyimport("test")
-            pyodide.runPythonAsync(`
-              import test
-              test.main()
+            pyodide.runPython(`
+              import test_new
+              test_new.main()
             `)
         }
         main();
