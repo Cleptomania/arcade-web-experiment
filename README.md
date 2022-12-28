@@ -18,4 +18,6 @@ Once running, if you visit http://localhost:8000/webgl_cube for example, you wil
 
 `server.py` is a small wrapper over Python's `http.server` and `socketserver` modules which when any directory is requested with a `.zip` appended will automatically zip the directory and serve that back. This allows for run-time generation of the Python package to be served to pyodide. If you peek inside a given example, you will see an `index.html` file as the entrypoint, and a `package` folder which contains the Python package. Additionally there may also be an `extra.js` file which may contain any necessary custom JavaScript code for the example.
 
+The `arcade` folder is special, it contains the code for the actual `arcade` package which gets imported in the examples.
+
 Any files/folders other than these, should be documented by a README within that specific example
