@@ -1,3 +1,5 @@
+from array import array
+
 import js
 
 import arcade
@@ -53,22 +55,24 @@ class Game(arcade.Window):
     def init_position_buffer(self):
         position_buffer = self.gl.createBuffer()
         self.gl.bindBuffer(self.gl.ARRAY_BUFFER, position_buffer)
-        positions = [
+        positions = array("f", [
             -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, # Front face
             -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, # Back face
             -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, # Top face
             -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, # Bottom face
             1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, # Right face
             -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, # Left face
-        ]
-        self.gl.bufferData(self.gl.ARRAY_BUFFER, js.Float32Array.new(positions), self.gl.STATIC_DRAW)
+        ])
+        position_arraybuffer = js.ArrayBuffer.new(len(positions) * positions.itemsize)
+        position_arraybuffer.assign(positions)
+        self.gl.bufferData(self.gl.ARRAY_BUFFER, position_arraybuffer, self.gl.STATIC_DRAW)
         return position_buffer
 
 
     def init_color_buffer(self):
         color_buffer = self.gl.createBuffer()
         self.gl.bindBuffer(self.gl.ARRAY_BUFFER, color_buffer)
-        colors = [
+        colors = array("f", [
             1.0, 1.0, 1.0, 1.0,
             1.0, 1.0, 1.0, 1.0,
             1.0, 1.0, 1.0, 1.0,
@@ -93,23 +97,27 @@ class Game(arcade.Window):
             1.0, 0.0, 1.0, 1.0,
             1.0, 0.0, 1.0, 1.0,
             1.0, 0.0, 1.0, 1.0
-        ]
-        self.gl.bufferData(self.gl.ARRAY_BUFFER, js.Float32Array.new(colors), self.gl.STATIC_DRAW)
+        ])
+        color_arraybuffer = js.ArrayBuffer.new(len(colors) * colors.itemsize)
+        color_arraybuffer.assign(colors)
+        self.gl.bufferData(self.gl.ARRAY_BUFFER, color_arraybuffer, self.gl.STATIC_DRAW)
         return color_buffer
 
 
     def init_index_buffer(self):
         indices_buffer = self.gl.createBuffer()
         self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, indices_buffer)
-        indices = [
+        indices = array("h", [
             0, 1, 2, 0, 2, 3, # front
             4, 5, 6, 4, 6, 7, # back
             8, 9, 10, 8, 10, 11, # top
             12, 13, 14, 12, 14, 15, # bottom
             16, 17, 18, 16, 18, 19, # right
             20, 21, 22, 20, 22, 23, # left
-        ]
-        self.gl.bufferData(self.gl.ELEMENT_ARRAY_BUFFER, js.Uint16Array.new(indices), self.gl.STATIC_DRAW)
+        ])
+        index_arraybuffer = js.ArrayBuffer.new(len(indices) * indices.itemsize)
+        index_arraybuffer.assign(indices)
+        self.gl.bufferData(self.gl.ELEMENT_ARRAY_BUFFER, index_arraybuffer, self.gl.STATIC_DRAW)
         return indices_buffer
 
 
@@ -173,4 +181,5 @@ class Game(arcade.Window):
 
 def run():
     game = Game()
+    arcade.run()
     arcade.run()
