@@ -1,4 +1,5 @@
 import math
+import time
 
 import js
 from pyodide.ffi import create_proxy
@@ -16,6 +17,7 @@ def load_shader(gl, type, source):
         return None
     return shader
 
+
 def init_shader_program(gl, vertex_source, fragment_source):
     vertex_shader = load_shader(gl, gl.VERTEX_SHADER, vertex_source)
     fragment_shader = load_shader(gl, gl.FRAGMENT_SHADER, fragment_source)
@@ -31,6 +33,7 @@ def init_shader_program(gl, vertex_source, fragment_source):
         
     return shader_program
 
+
 def init_position_buffer(gl):
     position_buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, position_buffer)
@@ -44,6 +47,7 @@ def init_position_buffer(gl):
     ]
     gl.bufferData(gl.ARRAY_BUFFER, js.Float32Array.new(positions), gl.STATIC_DRAW)
     return position_buffer
+
 
 def init_color_buffer(gl):
         color_buffer = gl.createBuffer()
@@ -77,6 +81,7 @@ def init_color_buffer(gl):
         gl.bufferData(gl.ARRAY_BUFFER, js.Float32Array.new(colors), gl.STATIC_DRAW)
         return color_buffer
 
+
 def init_index_buffer(gl):
     indices_buffer = gl.createBuffer()
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices_buffer)
@@ -91,57 +96,21 @@ def init_index_buffer(gl):
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, js.Uint16Array.new(indices), gl.STATIC_DRAW)
     return indices_buffer
 
+
 def init_buffers(gl):
     return {
         "position": init_position_buffer(gl),
         "color": init_color_buffer(gl),
-        "indices": init_index_buffer(gl),
+        "index": init_index_buffer(gl),
     }
 
-def draw_scene(gl, program_info, buffers, cube_rotation):
+def draw_scene(gl, program_info, buffers, cube_rotation):    
     gl.clearColor(0.0, 0.0, 0.0, 1.0)
     gl.clearDepth(1.0)
     gl.enable(gl.DEPTH_TEST)
     gl.depthFunc(gl.LEQUAL)
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-    fov = (45 * math.pi) / 180
-    aspect = 800 / 600
-    znear = 0.1
-    zfar = 100.0
-    projection_matrix = js.mat4.create()
-
-    js.mat4.perspective(projection_matrix, fov, aspect, znear, zfar)
-
-    model_view_matrix = js.mat4.create()
-
-    js.mat4.translate(
-        model_view_matrix,
-        model_view_matrix,
-        [-0.0, 0.0, -6.0]
-    )
-
-    js.mat4.rotate(
-        model_view_matrix,
-        model_view_matrix,
-        cube_rotation,
-        [0, 0, 1]
-    )
-
-    js.mat4.rotate(
-        model_view_matrix,
-        model_view_matrix,
-        cube_rotation * 0.7,
-        [0, 1, 0]
-    )
-
-    js.mat4.rotate(
-        model_view_matrix,
-        model_view_matrix,
-        cube_rotation * 0.3,
-        [1, 0, 0]
-    )
 
     num_components = 3
     type = gl.FLOAT
@@ -150,14 +119,14 @@ def draw_scene(gl, program_info, buffers, cube_rotation):
     offset = 0
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers["position"])
     gl.vertexAttribPointer(
-        program_info["attrib_locations"]["vertex_position"],
+        program_info["attribLocations"]["vertexPosition"],
         num_components,
         type,
         normalize,
         stride,
         offset
     )
-    gl.enableVertexAttribArray(program_info["attrib_locations"]["vertex_position"])
+    gl.enableVertexAttribArray(program_info["attribLocations"]["vertexPosition"])
 
     num_components = 4
     type = gl.FLOAT
@@ -166,30 +135,73 @@ def draw_scene(gl, program_info, buffers, cube_rotation):
     offset = 0
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers["color"])
     gl.vertexAttribPointer(
-        program_info["attrib_locations"]["vertex_color"],
+        program_info["attribLocations"]["vertexColor"],
         num_components,
         type,
         normalize,
         stride,
         offset
     )
-    gl.enableVertexAttribArray(program_info["attrib_locations"]["vertex_color"])
+    gl.enableVertexAttribArray(program_info["attribLocations"]["vertexColor"])
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers["indices"])
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers["index"])
 
-    gl.useProgram(program_info["program"])
 
-    gl.uniformMatrix4fv(
-        program_info["uniform_locations"]["projection_matrix"],
-        False,
-        projection_matrix
-    )
+    #gl.useProgram(program_info["program"])
+    js.useProgram(gl, program_info)
+    js.doProjection(gl, program_info)
+    js.doModelView(gl, program_info, cube_rotation)
 
-    gl.uniformMatrix4fv(
-        program_info["uniform_locations"]["model_view_matrix"],
-        False,
-        model_view_matrix
-    )
+    # fov = (45 * math.pi) / 180
+    # aspect = 800 / 600
+    # znear = 0.1
+    # zfar = 100.0
+    # projection_matrix = js.mat4.create()
+
+    # js.mat4.perspective(projection_matrix, fov, aspect, znear, zfar)
+
+    # model_view_matrix = js.mat4.create()
+
+    # js.mat4.translate(
+    #     model_view_matrix,
+    #     model_view_matrix,
+    #     [-0.0, 0.0, -6.0]
+    # )
+
+    # js.mat4.rotate(
+    #     model_view_matrix,
+    #     model_view_matrix,
+    #     cube_rotation,
+    #     [0, 0, 1]
+    # )
+
+    # js.mat4.rotate(
+    #     model_view_matrix,
+    #     model_view_matrix,
+    #     cube_rotation * 0.7,
+    #     [0, 1, 0]
+    # )
+
+    # js.mat4.rotate(
+    #     model_view_matrix,
+    #     model_view_matrix,
+    #     cube_rotation * 0.3,
+    #     [1, 0, 0]
+    # )
+
+    # gl.uniformMatrix4fv(
+    #     program_info["uniformLocations"]["projectionMatrix"],
+    #     False,
+    #     projection_matrix
+    # )
+
+    # gl.uniformMatrix4fv(
+    #     program_info["uniformLocations"]["modelViewMatrix"],
+    #     False,
+    #     model_view_matrix
+    # )
+
+    #js.drawScene(gl, program_info, buffers, cube_rotation)
 
     vertex_count = 36
     type = gl.UNSIGNED_SHORT
@@ -197,8 +209,10 @@ def draw_scene(gl, program_info, buffers, cube_rotation):
     gl.drawElements(gl.TRIANGLES, vertex_count, type, offset)
 
 
-def main():
+
+def run():
     global then
+    global cube_rotation
     canvas = js.document.createElement("canvas")
     canvas.id = "arcade-window"
     canvas.width = 800
@@ -211,10 +225,9 @@ def main():
         print("Failed to initialize WebGL")
         return
 
-    #gl.clearColor(0.0, 0.0, 0.0, 1.0)
-    #gl.clear(gl.COLOR_BUFFER_BIT)
-
-    vertex_source = """attribute vec4 aVertexPosition;
+    vertex_source = """
+        precision highp float;
+        attribute vec4 aVertexPosition;
         attribute vec4 aVertexColor;
         uniform mat4 uModelViewMatrix;
         uniform mat4 uProjectionMatrix;
@@ -225,7 +238,9 @@ def main():
         }
     """
 
-    fragment_source = """varying lowp vec4 vColor;
+    fragment_source = """
+    precision highp float;
+    varying lowp vec4 vColor;
     void main(void) {
         gl_FragColor = vColor;
     }
@@ -235,13 +250,13 @@ def main():
     
     program_info = {
         "program": shader_program,
-        "attrib_locations": {
-            "vertex_position": gl.getAttribLocation(shader_program, "aVertexPosition"),
-            "vertex_color": gl.getAttribLocation(shader_program, "aVertexColor"),
+        "attribLocations": {
+            "vertexPosition": gl.getAttribLocation(shader_program, "aVertexPosition"),
+            "vertexColor": gl.getAttribLocation(shader_program, "aVertexColor"),
         },
-        "uniform_locations": {
-            "projection_matrix": gl.getUniformLocation(shader_program, "uProjectionMatrix"),
-            "model_view_matrix": gl.getUniformLocation(shader_program, "uModelViewMatrix"),
+        "uniformLocations": {
+            "projectionMatrix": gl.getUniformLocation(shader_program, "uProjectionMatrix"),
+            "modelViewMatrix": gl.getUniformLocation(shader_program, "uModelViewMatrix"),
         },
     }
 
@@ -262,5 +277,3 @@ def main():
     render_proxy = create_proxy(render)
     
     js.requestAnimationFrame(render_proxy)
-
-

@@ -6,20 +6,20 @@
         integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
         crossorigin="anonymous" defer></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
-    <script src="arcade.js"></script>
+    <script src="extra.js"></script>
 </head>
 
 <body>
     <script type="text/javascript">
         async function main() {
             let pyodide = await loadPyodide();
-            let response = await fetch("http://localhost:8000/test.zip");
-            let buffer = await response.arrayBuffer();
-            await pyodide.unpackArchive(buffer, "zip");
-            pyodide.pyimport("test")
+            const pkgResponse = fetch("package.zip").then((x) => x.arrayBuffer());
+            const pkgData = await pkgResponse;
+            await pyodide.unpackArchive(pkgData, "zip");
+            pyodide.pyimport("package")
             pyodide.runPython(`
-              import test_new
-              test_new.main()
+                import package
+                package.run()
             `)
         }
         main();

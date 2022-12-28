@@ -10,12 +10,12 @@ a final version of this might look like.
 
 ## How do I run it?
 
-Currently there is a "library" module named `arcade.py` and a test application module named `test.py`. These two modules make up the python application.
-The library module is what would eventually be the `arcade-web` API, while the test application is intended to be an example usage of it. The implementation here
-is extremely subject to change and is not even a little bit what the final module would look like, it's quick and dirty to enable experimentation.
+Each folder in this directory(at least at time of writing) is a different example. To access them, you can run the `server.py` file located at the root. This will give you an HTTP server locally, which by default can be accessed at port 8000(this can be changed by providing the `-p` argument when running).
 
-In order to run this, you need to compile the two python files into a file named `test.zip` and then run an HTTP server(for example with `python -m http.server`)
-in the root directory of this project. The reason you can't just open the HTML file is because of filesystem/CORS security issues in browsers. Once you're running
-the HTTP server just navigate to https://localhost:8000 and you should see the example.
+Once running, if you visit http://localhost:8000/webgl_cube for example, you will see the WebGL Cube example in your browser.
 
-For convenience, there is a `build.sh` script which will update the zip file, as this needs re-created anytime modifications are made to the python files.
+## How does that work?
+
+`server.py` is a small wrapper over Python's `http.server` and `socketserver` modules which when any directory is requested with a `.zip` appended will automatically zip the directory and serve that back. This allows for run-time generation of the Python package to be served to pyodide. If you peek inside a given example, you will see an `index.html` file as the entrypoint, and a `package` folder which contains the Python package. Additionally there may also be an `extra.js` file which may contain any necessary custom JavaScript code for the example.
+
+Any files/folders other than these, should be documented by a README within that specific example

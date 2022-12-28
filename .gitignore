@@ -1,1 +1,43 @@
-test.zip
+# IDEs
+*.sublime-project
+*.sublime-workspace
+.idea/
+/.vscode/
+*.wpr
+*.wpu
+
+# virualenvs
+env
+.env
+.venv
+ENV/
+env/
+venv*/
+.venv*/
+
+# testing
+.pytest_cache/
+.coveralls.yml
+.tox/
+.mypy_cache/
+stress_test*.csv
+pylint.html
+
+# covereage
+htmlcov/
+.coverage
+
+# build
+.eggs/
+dist/
+build/
+arcade.egg-info/
+*.pyc
+arcade/__pycache__/
+doc/_build
+
+# osx
+.DS_Store
+
+# Zip Files created of packages
+*.zip
