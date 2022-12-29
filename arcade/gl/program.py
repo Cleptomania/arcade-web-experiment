@@ -1,13 +1,18 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from arcade.gl import Context
+
 class Program:
-    def __init__(self, context):
-        self._context = context
+    def __init__(self, ctx: "Context"):
+        self._ctx = ctx
         self._glo = None
 
     @classmethod
-    def create(cls, context, vertex_source: str, fragment_source: str):
-        program = cls(context)
+    def create(cls, ctx: "Context", vertex_source: str, fragment_source: str):
+        program = cls(ctx)
 
-        gl = context.gl
+        gl = ctx.gl
 
         vertex_shader = Program.load_shader(gl, gl.VERTEX_SHADER, vertex_source)
         fragment_shader = Program.load_shader(gl, gl.FRAGMENT_SHADER, fragment_source)

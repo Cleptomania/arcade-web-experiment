@@ -3,6 +3,7 @@ from array import array
 import js
 
 import arcade
+import arcade.gl
 
 VERTEX_SOURCE = """
     precision highp float;
@@ -25,6 +26,50 @@ void main(void) {
 }
 """
 
+CUBE_POSITIONS = array("f", [
+    -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, # Front face
+    -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, # Back face
+    -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, # Top face
+    -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, # Bottom face
+    1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, # Right face
+    -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, # Left face
+])
+
+CUBE_COLORS = array("f", [
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+    1.0, 1.0, 0.0, 1.0,
+    1.0, 1.0, 0.0, 1.0,
+    1.0, 1.0, 0.0, 1.0,
+    1.0, 1.0, 0.0, 1.0,
+    1.0, 0.0, 1.0, 1.0,
+    1.0, 0.0, 1.0, 1.0,
+    1.0, 0.0, 1.0, 1.0,
+    1.0, 0.0, 1.0, 1.0
+])
+
+CUBE_INDICES = array("h", [
+    0, 1, 2, 0, 2, 3, # front
+    4, 5, 6, 4, 6, 7, # back
+    8, 9, 10, 8, 10, 11, # top
+    12, 13, 14, 12, 14, 15, # bottom
+    16, 17, 18, 16, 18, 19, # right
+    20, 21, 22, 20, 22, 23, # left
+])
 
 class Game(arcade.Window):
     def __init__(self):
@@ -52,80 +97,11 @@ class Game(arcade.Window):
 
         self.cube_rotation = 0
 
-    def init_position_buffer(self):
-        position_buffer = self.gl.createBuffer()
-        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, position_buffer)
-        positions = array("f", [
-            -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, # Front face
-            -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, # Back face
-            -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, # Top face
-            -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, # Bottom face
-            1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, # Right face
-            -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, # Left face
-        ])
-        position_arraybuffer = js.ArrayBuffer.new(len(positions) * positions.itemsize)
-        position_arraybuffer.assign(positions)
-        self.gl.bufferData(self.gl.ARRAY_BUFFER, position_arraybuffer, self.gl.STATIC_DRAW)
-        return position_buffer
-
-
-    def init_color_buffer(self):
-        color_buffer = self.gl.createBuffer()
-        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, color_buffer)
-        colors = array("f", [
-            1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 0.0, 1.0, 1.0,
-            0.0, 0.0, 1.0, 1.0,
-            0.0, 0.0, 1.0, 1.0,
-            0.0, 0.0, 1.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
-            1.0, 0.0, 1.0, 1.0,
-            1.0, 0.0, 1.0, 1.0,
-            1.0, 0.0, 1.0, 1.0,
-            1.0, 0.0, 1.0, 1.0
-        ])
-        color_arraybuffer = js.ArrayBuffer.new(len(colors) * colors.itemsize)
-        color_arraybuffer.assign(colors)
-        self.gl.bufferData(self.gl.ARRAY_BUFFER, color_arraybuffer, self.gl.STATIC_DRAW)
-        return color_buffer
-
-
-    def init_index_buffer(self):
-        indices_buffer = self.gl.createBuffer()
-        self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, indices_buffer)
-        indices = array("h", [
-            0, 1, 2, 0, 2, 3, # front
-            4, 5, 6, 4, 6, 7, # back
-            8, 9, 10, 8, 10, 11, # top
-            12, 13, 14, 12, 14, 15, # bottom
-            16, 17, 18, 16, 18, 19, # right
-            20, 21, 22, 20, 22, 23, # left
-        ])
-        index_arraybuffer = js.ArrayBuffer.new(len(indices) * indices.itemsize)
-        index_arraybuffer.assign(indices)
-        self.gl.bufferData(self.gl.ELEMENT_ARRAY_BUFFER, index_arraybuffer, self.gl.STATIC_DRAW)
-        return indices_buffer
-
-
     def init_buffers(self):
         return {
-            "position": self.init_position_buffer(),
-            "color": self.init_color_buffer(),
-            "index": self.init_index_buffer(),
+            "position": arcade.gl.Buffer(self.context, CUBE_POSITIONS),
+            "color": arcade.gl.Buffer(self.context, CUBE_COLORS),
+            "index": arcade.gl.Buffer(self.context, CUBE_INDICES, arcade.gl.ELEMENT_ARRAY_BUFFER),
         }
 
     def on_update(self, delta_time):
@@ -139,7 +115,7 @@ class Game(arcade.Window):
         normalize = False
         stride = 0
         offset = 0
-        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, self.buffers["position"])
+        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, self.buffers["position"]._glo)
         self.gl.vertexAttribPointer(
             self.program_info["attribLocations"]["vertexPosition"],
             num_components,
@@ -155,7 +131,7 @@ class Game(arcade.Window):
         normalize = False
         stride = 0
         offset = 0
-        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, self.buffers["color"])
+        self.gl.bindBuffer(self.gl.ARRAY_BUFFER, self.buffers["color"]._glo)
         self.gl.vertexAttribPointer(
             self.program_info["attribLocations"]["vertexColor"],
             num_components,
@@ -166,7 +142,7 @@ class Game(arcade.Window):
         )
         self.gl.enableVertexAttribArray(self.program_info["attribLocations"]["vertexColor"])
 
-        self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, self.buffers["index"])
+        self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, self.buffers["index"]._glo)
 
         # This section will not work from Python for some reason, it's in extra.js
         js.useProgram(self.gl, self.program_info)
@@ -181,5 +157,4 @@ class Game(arcade.Window):
 
 def run():
     game = Game()
-    arcade.run()
     arcade.run()
