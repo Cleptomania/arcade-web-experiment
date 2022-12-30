@@ -104,7 +104,7 @@ class Game(arcade.Window):
             "index": arcade.gl.Buffer(self.context, CUBE_INDICES, arcade.gl.ELEMENT_ARRAY_BUFFER),
         }
 
-    def on_update(self, delta_time):
+    def on_uSpdate(self, delta_time):
         self.cube_rotation = self.cube_rotation + delta_time
 
     def on_draw(self):

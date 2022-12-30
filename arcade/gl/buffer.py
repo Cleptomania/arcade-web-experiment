@@ -38,6 +38,10 @@ class Buffer:
         gl.bufferData(buffer_type, js_array_buffer, self._usage)
 
     @property
+    def glo(self):
+        return self._glo
+
+    @property
     def size(self) -> int:
         return self._size
 

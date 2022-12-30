@@ -1,38 +1,66 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
+
+from arcade.gl import constants
+
+from .types import AttribFormat, GLTypes
 
 if TYPE_CHECKING:
     from arcade.gl import Context
 
+
 class Program:
-    def __init__(self, ctx: "Context"):
+    def __init__(self, ctx: "Context", *, vertex_shader: str, fragment_shader: str):
         self._ctx = ctx
-        self._glo = None
+        self._glo = self._ctx.gl.createProgram()
+        self._geometry_info = (0, 0, 0)
+        self._attributes = []
 
-    @classmethod
-    def create(cls, ctx: "Context", vertex_source: str, fragment_source: str):
-        program = cls(ctx)
+        raw_shaders = [
+            (vertex_shader, constants.VERTEX_SHADER),
+            (fragment_shader, constants.FRAGMENT_SHADER),
+        ]
 
-        gl = ctx.gl
+        shaders = []
+        for raw_shader, shader_type in raw_shaders:
+            shader = Program.compile_shader(self._ctx.gl, raw_shader, shader_type)
+            self._ctx.gl.attachShader(self._glo, shader)
+            shaders.append(shader)
 
-        vertex_shader = Program.load_shader(gl, gl.VERTEX_SHADER, vertex_source)
-        fragment_shader = Program.load_shader(gl, gl.FRAGMENT_SHADER, fragment_source)
+        Program.link(self._glo)
 
-        program._glo = gl.createProgram()
-        gl.attachShader(program._glo, vertex_shader)
-        gl.attachShader(program._glo, fragment_shader)
-        gl.linkProgram(program._glo)
+        for shader in shaders:
+            self._ctx.gl.detachShader(self._glo, shader)
+            self._ctx.gl.deleteShader(shader)
 
-        if not gl.getProgramParameter(program._glo, gl.LINK_STATUS):
-            print(
-                f"Error occured while linking program: {gl.getProgramInfoLog(program)}"
+        self._introspect_attributes()
+
+    @property
+    def attributes(self) -> Iterable[AttribFormat]:
+        return self._attributes
+
+    def _introspect_attributes(self):
+        num_attrs = self._ctx.gl.getProgramParameter(
+            self._glo, constants.ACTIVE_ATTRIBUTES
+        )
+
+        for i in range(num_attrs):
+            info = self._ctx.gl.getActiveAttrib(self._glo, i)
+            location = self._ctx.gl.getAttribLocation(self._glo, info.name)
+
+            type_info = GLTypes.get(info.type)
+
+            self._attributes.append(
+                AttribFormat(
+                    info.name,
+                    type_info.gl_type,
+                    type_info.components,
+                    type_info.gl_size,
+                    location=location,
+                )
             )
-            return None
-        
-        return program
-
 
     @staticmethod
-    def load_shader(gl, type: int, source: str):
+    def compile_shader(gl, source: str, type: int):
         shader = gl.createShader(type)
         gl.shaderSource(shader, source)
         gl.compileShader(shader)
@@ -43,5 +71,14 @@ class Program:
             )
             gl.deleteShader(shader)
             return None
-        
+
         return shader
+
+    @staticmethod
+    def link(gl, glo):
+        gl.linkProgram(glo)
+
+        if not gl.getProgramParameter(glo, constants.LINK_STATUS):
+            raise RuntimeError(
+                f"Error occured while linking program: {gl.getProgramInfoLog(glo)}"
+            )
